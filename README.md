@@ -1,26 +1,31 @@
-AI Survey Generator – Backend + Frontend Integration
+# AI Survey Generator – Backend + Frontend Integration
+
 A small FastAPI backend that turns a short brief into a structured survey (MCQ, multi-select, ratings, open text), caches results in Postgres, and exposes an endpoint to save responses. The provided frontend page stays visually unchanged; the Generate Survey button uses the typed description and auto-fills the Survey Questions block.
 
-Tech choices
-FastAPI (Python 3.11)
-Fast, type-safe request/response modeling, automatic OpenAPI docs, async-ready.
+---
 
-Pydantic v2
-Validates input/output schemas (length limits, enums) for predictable payloads.
+## Tech choices
 
-SQLAlchemy (async) + asyncpg + PostgreSQL
-JSONB for flexible survey shape; async engine for responsiveness.
+- **FastAPI (Python 3.11)**  
+  Fast, type-safe request/response modeling, automatic OpenAPI docs, async-ready.
 
-OpenAI API (via adapter)
-A thin adapter isolates the LLM call. Pluggable (mock mode, or swap in another LLM).
+- **Pydantic v2**  
+  Validates input/output schemas (length limits, enums) for predictable payloads.
 
-CORS + clear API versioning
-/v1/surveys/generate (+ /api alias) keeps the contract explicit and easy to swap.
+- **SQLAlchemy (async) + asyncpg + PostgreSQL**  
+  JSONB for flexible survey shape; async engine for responsiveness.
 
-Project structure (backend)
-bash
-Copy
-Edit
+- **OpenAI API (via adapter)**  
+  A thin adapter isolates the LLM call. Pluggable (mock mode, or swap in another LLM).
+
+- **CORS + clear API versioning**  
+  `/v1/surveys/generate` (+ `/api` alias) keeps the contract explicit and easy to swap.
+
+---
+
+## Project structure (backend)
+
+```bash
 backend/
   adapters/
     openai_adapter.py        # LLM calls (or mock)
@@ -36,14 +41,33 @@ backend/
   main.py                    # FastAPI app, routes, startup (create_all)
 Key routes
 POST /v1/surveys/generate (alias: /api/surveys/generate)
-Request: { "description": string, "num_questions"?: number, "language"?: "en" }
-Response: { "survey": { id, title, description, questions: [...] } }
+Request:
+
+json
+Copy
+Edit
+{ "description": "string", "num_questions"?: number, "language"?: "en" }
+Response:
+
+json
+Copy
+Edit
+{ "survey": { id, title, description, questions: [...] } }
 Header: X-Survey-Source: llm | cache | mock
 
 POST /v1/surveys/{survey_id}/responses (alias: /api/...)
-Request: { "answers": { [questionId]: value } }
-Response: { "success": true, "response_id": number }
+Request:
 
+json
+Copy
+Edit
+{ "answers": { [questionId]: value } }
+Response:
+
+json
+Copy
+Edit
+{ "success": true, "response_id": number }
 Setup & run
 1) Requirements
 Python 3.11
@@ -58,8 +82,10 @@ Copy
 Edit
 cd BackendTask
 python -m venv .venv
+
 # Windows:
 . .venv/Scripts/activate
+
 # macOS/Linux:
 # source .venv/bin/activate
 
@@ -90,7 +116,7 @@ CREATE DATABASE surveydb;
 CREATE USER survey_user WITH PASSWORD 'yourpass';
 ALTER DATABASE surveydb OWNER TO survey_user;
 GRANT ALL PRIVILEGES ON DATABASE surveydb TO survey_user;
-ALTER SCHEMA public OWNER TO survey_user;        -- fixes “permission denied for schema public”
+ALTER SCHEMA public OWNER TO survey_user;  -- fixes “permission denied for schema public”
 3) Run backend
 bash
 Copy
@@ -101,10 +127,18 @@ OpenAPI docs: http://127.0.0.1:8000/docs
 4) Frontend – dev run
 Set API base for your app (either one usually works in your template):
 
-Vite: VITE_API_BASE=http://localhost:8000
+Vite:
 
-CRA: REACT_APP_API_BASE=http://localhost:8000
+env
+Copy
+Edit
+VITE_API_BASE=http://localhost:8000
+CRA:
 
+env
+Copy
+Edit
+REACT_APP_API_BASE=http://localhost:8000
 Then:
 
 bash
@@ -139,12 +173,15 @@ curl -s -X POST "http://127.0.0.1:8000/v1/surveys/srv_demo/responses" \
   -H "Content-Type: application/json" \
   -d '{"answers":{"q1":"c2","q2":5,"q3":"Great!"}}'
 Common issues
+permission denied for schema public → run:
 
-permission denied for schema public → run ALTER SCHEMA public OWNER TO survey_user;
+sql
+Copy
+Edit
+ALTER SCHEMA public OWNER TO survey_user;
+404 on generate → your frontend might call /api/...; both /v1 and /api are available.
 
-404 on generate → your frontend might call /api/...; both /v1 and /api are available
-
-429 / insufficient_quota → set MOCK_LLM=1 to keep working while you fix billing
+429 / insufficient_quota → set MOCK_LLM=1 to keep working while you fix billing.
 
 What I focused on
 Clean API design – versioned routes, explicit schemas, proper status codes, helpful errors
@@ -159,7 +196,7 @@ Validation & defaults – Pydantic enforces bounds; rating defaults to 1–5
 
 Frontend fit without redesign – “Generate Survey” uses the typed description and updates the existing right-hand panel
 
-Observability – header shows llm|cache|mock for demo clarity
+Observability – header shows llm | cache | mock for demo clarity
 
 Future improvements (if I had more time)
 GET /surveys/{id} and GET /surveys/{id}/responses?limit=...
