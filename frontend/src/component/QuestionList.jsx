@@ -1,3 +1,6 @@
+// Vertical list wrapper for all questions in the builder.
+// Provides the DragDropContext and renders each QuestionItem.
+
 import React from "react";
 import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import { useCreateSurveyProvider } from "./CreateSurveyProvider";

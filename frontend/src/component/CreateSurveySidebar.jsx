@@ -1,9 +1,14 @@
+// Right-hand sidebar that shows progress + list of questions (via CreateSurveyContent).
+// Progress is computed from three simple conditions: title set, description set, and all questions saved.
+
 import React, { useState } from "react";
 import { useCreateSurveyProvider } from "./CreateSurveyProvider";
 import CreateSurveyContent from "./CreateSurveyContent";
 
 const CreateSurveySidebar = ({ surveySeriesId }) => {
   const { questions, surveyTitle, surveyDescription } = useCreateSurveyProvider();
+
+  // Simple 0–100% progress indicator
   const progress = Math.floor(
     ((surveyTitle.trim() !== "") +
      (surveyDescription.trim() !== "") +
@@ -15,6 +20,7 @@ const CreateSurveySidebar = ({ surveySeriesId }) => {
   return (
     <aside className="p-4 bg-white rounded shadow">
       <div className="mb-4">
+        {/* reserved area for series info / metadata if needed */}
       </div>
 
       <div className="mb-6">
@@ -25,6 +31,7 @@ const CreateSurveySidebar = ({ surveySeriesId }) => {
         <p className="mt-1 text-sm font-semibold">{progress}% complete</p>
       </div>
 
+      {/* Renders the list of question titles with drag handles */}
       <CreateSurveyContent />
     </aside>
   );
